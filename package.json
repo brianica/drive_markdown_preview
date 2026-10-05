@@ -1,0 +1,14 @@
+{
+  "name": "drive-markdown-preview",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Chrome extension that renders Markdown files in Google Drive",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "package": "bash scripts/package.sh"
+  },
+  "devDependencies": {
+    "jsdom": "^25.0.0"
+  }
+}

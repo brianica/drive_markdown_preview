@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Markdown preview</title>
+  <link rel="stylesheet" href="viewer.css">
+</head>
+<body>
+  <header id="toolbar">
+    <div class="group" role="tablist">
+      <button id="btn-preview" class="active">Preview</button>
+      <button id="btn-raw">Raw</button>
+      <button id="btn-edit">Edit</button>
+    </div>
+    <span id="status"></span>
+    <span class="spacer"></span>
+    <button id="btn-copy">Copy</button>
+    <button id="btn-download">Download .md</button>
+    <button id="btn-close" title="Hide this preview and show Drive's own view">Drive view</button>
+  </header>
+  <main id="panes" data-mode="preview">
+    <iframe id="preview" title="Rendered Markdown" sandbox="allow-popups allow-popups-to-escape-sandbox"></iframe>
+    <pre id="raw" tabindex="0"></pre>
+    <textarea id="editor" spellcheck="false" aria-label="Markdown editor"></textarea>
+  </main>
+  <script src="../vendor/marked.min.js"></script>
+  <script src="../vendor/purify.min.js"></script>
+  <script src="render.js"></script>
+  <script src="viewer.js"></script>
+</body>
+</html>
