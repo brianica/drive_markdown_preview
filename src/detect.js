@@ -29,5 +29,18 @@
     return MD_EXT.test(fileNameFromTitle(title));
   }
 
-  return { fileIdFromUrl, fileNameFromTitle, isMarkdownTitle };
+  function isMarkdownName(name) {
+    return MD_EXT.test(String(name || '').trim());
+  }
+
+  // The tab title is the primary source; Drive pages also carry the name in
+  // og:title, used as a fallback. Prefers whichever candidate looks like Markdown.
+  function fileNameFromPage(doc) {
+    const og = doc.querySelector && doc.querySelector('meta[property="og:title"]');
+    const candidates = [fileNameFromTitle(doc.title), og && og.getAttribute('content')]
+      .map((n) => fileNameFromTitle(n)).filter(Boolean);
+    return candidates.find(isMarkdownName) || candidates[0] || '';
+  }
+
+  return { fileIdFromUrl, fileNameFromTitle, isMarkdownTitle, isMarkdownName, fileNameFromPage };
 });

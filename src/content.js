@@ -4,15 +4,26 @@
 (() => {
   const VIEWER_URL = chrome.runtime.getURL('src/viewer.html');
   const VIEWER_ORIGIN = new URL(VIEWER_URL).origin;
-  const { fileIdFromUrl, fileNameFromTitle, isMarkdownTitle } = DMP_detect;
+  const { fileIdFromUrl, fileNameFromPage, isMarkdownName } = DMP_detect;
 
   let current = null;          // { fileId, iframe, dirty }
   let dismissed = null;        // fileId the user switched back to Drive's view
   let pill = null;
+  let forced = null;           // fileId the user forced a preview for (any extension)
+  let lastFetch = 'not attempted';
+  let lastLog = '';
+
+  function log(msg) {
+    if (msg === lastLog) return;
+    lastLog = msg;
+    console.log('[DMP] ' + msg);
+  }
 
   function check() {
     const id = fileIdFromUrl(location.href);
-    const want = id && isMarkdownTitle(document.title) ? id : null;
+    const name = fileNameFromPage(document);
+    const want = id && (isMarkdownName(name) || forced === id) ? id : null;
+    log(id ? 'file id ' + id + ', name "' + name + '", markdown=' + !!want : 'not a Drive file page (' + location.pathname + ')');
     if ((current && current.fileId) === want) return;
     if (current && current.dirty && !confirm('Discard unsaved edits in the Markdown preview?')) {
       history.back();
@@ -60,13 +71,15 @@
 
   async function sendFile() {
     const { fileId } = current;
-    const filename = fileNameFromTitle(document.title);
+    const filename = fileNameFromPage(document) || 'file.md';
     let res;
     try {
       res = await chrome.runtime.sendMessage({ type: 'fetch-file', fileId });
     } catch (e) {
       res = { ok: false, error: String(e.message || e) };
     }
+    lastFetch = res && res.ok ? 'ok (' + res.text.length + ' chars)' : 'failed: ' + ((res && res.error) || 'unknown');
+    log('fetch ' + lastFetch);
     if (!current || current.fileId !== fileId) return;
     post(res && res.ok ? { type: 'content', text: res.text, filename }
                        : { type: 'error', message: (res && res.error) || 'Unknown error', filename });
@@ -83,6 +96,20 @@
 
   window.addEventListener('beforeunload', (e) => {
     if (current && current.dirty) { e.preventDefault(); e.returnValue = ''; }
+  });
+
+  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (sender.id !== chrome.runtime.id || !msg) return;
+    if (msg.type === 'dmp-status') {
+      sendResponse({
+        url: location.href, title: document.title, fileId: fileIdFromUrl(location.href),
+        name: fileNameFromPage(document), mounted: !!current, forced: !!forced, lastFetch
+      });
+    } else if (msg.type === 'dmp-force') {
+      const id = fileIdFromUrl(location.href);
+      if (id) { forced = id; dismissed = null; check(); }
+      sendResponse({ ok: !!id });
+    }
   });
 
   new MutationObserver(check).observe(document.head, { childList: true, subtree: true, characterData: true });

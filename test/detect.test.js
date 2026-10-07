@@ -22,3 +22,14 @@ test('recognises markdown titles', () => {
   assert.ok(!isMarkdownTitle('md - Google Drive'));
   assert.ok(!isMarkdownTitle('Google Drive'));
 });
+
+test('fileNameFromPage prefers a markdown-looking candidate and falls back to og:title', () => {
+  const { fileNameFromPage, isMarkdownName } = require('../src/detect.js');
+  const doc = (title, og) => ({ title, querySelector: () => (og == null ? null : { getAttribute: () => og }) });
+  assert.strictEqual(fileNameFromPage(doc('notes.md - Google Drive')), 'notes.md');
+  assert.strictEqual(fileNameFromPage(doc('notes.md')), 'notes.md');
+  assert.strictEqual(fileNameFromPage(doc('Google Drive', 'plan.md')), 'plan.md');
+  assert.strictEqual(fileNameFromPage(doc('img.png - Google Drive', 'img.png')), 'img.png');
+  assert.strictEqual(fileNameFromPage(doc('')), '');
+  assert.ok(isMarkdownName('a.md') && !isMarkdownName('a.txt') && !isMarkdownName(null));
+});

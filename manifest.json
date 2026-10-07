@@ -4,6 +4,11 @@
   "version": "0.1.0",
   "description": "Renders Markdown (.md) files in Google Drive as a formatted preview, with Raw and local Edit views. Nothing leaves your browser.",
   "icons": { "16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png" },
+  "action": {
+    "default_title": "Drive Markdown Preview",
+    "default_popup": "src/popup.html",
+    "default_icon": { "16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png" }
+  },
   "permissions": ["storage"],
   "host_permissions": [
     "https://drive.google.com/*",
